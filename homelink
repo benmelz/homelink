@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+
+while getopts ":h" opt; do
+  case "${opt}" in
+    h )
+      echo "Usage: homelink [-h] <source>"
+      exit 1
+      ;;
+  esac
+  shift 1
+done
+root="${1}"
+[ -z "${root}" ] && root="."
+if [ ! -d "${root}" ]; then
+  echo "Error: ${root} is not a valid directory"
+  exit 1
+fi
+root="$(cd "${root}" && pwd)"
+find -L "${root}" -mindepth 1 -maxdepth 1 -not -name ".*" | while read -r base; do
+  find -L "${base}" -type f | while read -r srcfile; do
+    lnfile="${HOME}/.${srcfile#"${root}"/}"
+    lndir="$(dirname "${lnfile}")"
+    mkdir -p "${lndir}"
+    rm -f "${lnfile}"
+    ln -s "${srcfile}" "${lnfile}"
+  done
+done
+
